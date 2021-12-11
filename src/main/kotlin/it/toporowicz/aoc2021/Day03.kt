@@ -1,7 +1,7 @@
 package it.toporowicz.aoc2021
 
 fun main() {
-    val inputInstructions = InputReader.readInputData("day03.txt")
+    val inputInstructions = InputReader.readInputData("it/toporowicz/aoc2021/day03.txt")
 
     println("Part 1 result: ${Day03().part01(inputInstructions)}")
     println("Part 2 result: ${Day03().part02(inputInstructions)}")

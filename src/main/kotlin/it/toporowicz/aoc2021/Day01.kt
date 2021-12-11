@@ -1,7 +1,7 @@
 package it.toporowicz.aoc2021
 
 fun main() {
-    val inputMeasurements = InputReader.readInputData("day02.txt")
+    val inputMeasurements = InputReader.readInputData("it/toporowicz/aoc2021/day01.txt")
         .map { numberAsString -> Integer.parseInt(numberAsString) }
 
     println("Part 1 result: ${Day01().part01(inputMeasurements)}")
