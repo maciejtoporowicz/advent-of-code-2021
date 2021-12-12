@@ -40,6 +40,7 @@ internal class Day04Test {
 
     @Test
     fun shouldReadBoardData() {
+        // given
         val inputLines = InputReader.readInputData("it/toporowicz/aoc2021/day04.txt", Day04Test::class.java)
 
         // when
