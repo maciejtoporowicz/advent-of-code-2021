@@ -107,10 +107,7 @@ class Day08 {
         require(numberByPattern.keys.toSet().size == 10)
 
         return outputValues
-            .joinToString(separator = "") {
-                val number = numberByPattern[it]
-                number.toString()
-            }
+            .joinToString(separator = "") { numberByPattern[it]!!.toString() }
             .let { Integer.parseInt(it) }
     }
 
