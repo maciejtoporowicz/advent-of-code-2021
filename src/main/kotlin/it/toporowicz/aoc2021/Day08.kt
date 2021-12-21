@@ -53,10 +53,10 @@ class Day08 {
 
         val candidatePatternsFor9 = uniqueSignalPatterns.filter { it.size == 6 }
 
-        val letterForEAndGFrequencyInCandidatesPatternsFor9 = lettersForEAndG
+        val letterForEAndGFrequencyInCandidatePatternsFor9 = lettersForEAndG
             .associateBy { numOfOccurrencesIn(candidatePatternsFor9, it) }
 
-        val letterForE = letterForEAndGFrequencyInCandidatesPatternsFor9[2]!!
+        val letterForE = letterForEAndGFrequencyInCandidatePatternsFor9[2]!!
 
         val patternFor9 = uniqueSignalPatterns
             .filter { it.size == 6 && !it.contains(letterForE) }
