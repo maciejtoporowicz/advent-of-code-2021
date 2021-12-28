@@ -72,17 +72,19 @@ class Day10 {
             .map { analyze(it) }
             .filterIsInstance<Incomplete>()
             .map { autocomplete(it.openingCharStack) }
-            .map {
-                it.fold(0L) { total, currentChar ->
-                    (total * 5L) + charactersConfig.scoreForAutocompleteForCharacter(currentChar)
-                }
-            }
-            .sorted()
+            .map { calculateAutocompleteScoreFor(it) }
             .toList()
-            .let {
-                val middleScoreIndex = (it.size - 1) / 2
-                it[middleScoreIndex]
-            }
+            .let { getMiddleScoreOutOf(it) }
+    }
+
+    private fun calculateAutocompleteScoreFor(autocompleteScores: List<Char>) =
+        autocompleteScores.fold(0L) { total, currentChar ->
+            (total * 5L) + charactersConfig.scoreForAutocompleteForCharacter(currentChar)
+        }
+
+    private fun getMiddleScoreOutOf(scores: List<Long>): Long {
+        val middleScoreIndex = (scores.size - 1) / 2
+        return scores.sorted()[middleScoreIndex]
     }
 
     private fun autocomplete(openingCharStack: Stack<Char>): List<Char> {
