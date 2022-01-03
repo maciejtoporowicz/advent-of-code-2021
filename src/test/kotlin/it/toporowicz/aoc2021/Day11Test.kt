@@ -60,12 +60,7 @@ internal class Day11Test {
     @MethodSource("testDataForCounting10x10Flashes")
     fun shouldCountFlashesDays10x10(howManySteps: Int, expectedFlashes: Long) {
         // given
-        val matrix = Day11InputDataParser().parse(
-            InputReader.readInputData(
-                "it/toporowicz/aoc2021/day11.txt",
-                Day11Test::class.java
-            )
-        )
+        val matrix = get10x10TestData()
 
         // when
         val actualFlashes = Day11().countFlashes(matrix, howManySteps)
@@ -93,6 +88,25 @@ internal class Day11Test {
         // then
         assertEquals(9, actualFlashes)
     }
+
+    @Test
+    fun shouldFindFirstStepNumberWhereAllOctopusFlashedAtOnce() {
+        // given
+        val matrix = get10x10TestData()
+
+        // when
+        val result = Day11().findStepWhereAllOctopusFlashAtOnce(matrix)
+
+        // then
+        assertEquals(195, result)
+    }
+
+    private fun get10x10TestData() = Day11InputDataParser().parse(
+        InputReader.readInputData(
+            "it/toporowicz/aoc2021/day11.txt",
+            Day11Test::class.java
+        )
+    )
 
     companion object {
         @JvmStatic

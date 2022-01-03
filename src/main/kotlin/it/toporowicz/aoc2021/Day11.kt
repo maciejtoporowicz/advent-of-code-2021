@@ -6,6 +6,7 @@ fun main() {
     }
 
     println("Part 1 result: ${Day11().countFlashes(octopusMatrix, 100)}")
+    println("Part 2 result: ${Day11().findStepWhereAllOctopusFlashAtOnce(octopusMatrix)}")
 }
 
 class Day11InputDataParser {
@@ -29,6 +30,27 @@ class Day11InputDataParser {
 }
 
 class Day11 {
+    fun findStepWhereAllOctopusFlashAtOnce(octopusMatrix: OctopusMatrix): Int {
+        return findStepWhereAllOctopusFlashAtOnce(octopusMatrix, 1, 0)
+    }
+
+    private fun findStepWhereAllOctopusFlashAtOnce(
+        octopusMatrix: OctopusMatrix,
+        currentStepNumber: Int,
+        totalFlashesInPreviousStep: Long
+    ): Int {
+        val matrixMovedForward = octopusMatrix.step(1)
+        val totalFlashesInCurrentStep = matrixMovedForward.countFlashes()
+
+        val numOfFlashesInThisStep = totalFlashesInCurrentStep - totalFlashesInPreviousStep
+
+        return if (numOfFlashesInThisStep.toInt() == octopusMatrix.howManyOctopus()) {
+            currentStepNumber
+        } else {
+            findStepWhereAllOctopusFlashAtOnce(matrixMovedForward, currentStepNumber + 1, totalFlashesInCurrentStep)
+        }
+    }
+
     fun countFlashes(octopusMatrix: OctopusMatrix, howManySteps: Int) =
         octopusMatrix
             .step(howManySteps)
@@ -42,6 +64,8 @@ class Day11 {
         }
 
         fun countFlashes() = octopusesByCoordinate.values.sumOf { it.flashCount }
+
+        fun howManyOctopus() = octopusesByCoordinate.values.size
 
         private fun step(): OctopusMatrix {
             val octopusWithInitiallyIncrementedEnergy = octopusesByCoordinate.mapValues { (_, octopus) ->
