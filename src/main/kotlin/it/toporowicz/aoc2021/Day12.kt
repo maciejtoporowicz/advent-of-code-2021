@@ -6,6 +6,7 @@ fun main() {
     }
 
     println("Part 1 result: ${Day12().countUniquePathsWhichGoThroughSmallCaveAtMostOnce(caveSystem)}")
+    println("Part 2 result: ${Day12().countUniquePathsWhichGoThroughOneSmallCaveAtMostTwice(caveSystem)}")
 }
 
 class Day12InputDataParser {
@@ -44,8 +45,48 @@ class Day12InputDataParser {
 }
 
 class Day12 {
-    fun countUniquePathsWhichGoThroughSmallCaveAtMostOnce(caveSystem: CaveSystem) =
-        caveSystem.getPathsFromStartToEnd().size
+    fun countUniquePathsWhichGoThroughSmallCaveAtMostOnce(caveSystem: CaveSystem): Int {
+        val visitLimit = caveSystem.paths
+            .flatMap { listOf(it.from, it.to) }
+            .toSet()
+            .associateWith {
+                when (it) {
+                    is Start -> 1
+                    is End -> 1
+                    is Small -> 1
+                    else -> null
+                }
+            }
+
+        return caveSystem
+            .getPathsFromStartToEnd(visitLimit)
+            .size
+    }
+
+    fun countUniquePathsWhichGoThroughOneSmallCaveAtMostTwice(caveSystem: CaveSystem): Int {
+        val allCaves = caveSystem.paths
+            .flatMap { listOf(it.from, it.to) }
+            .toSet()
+
+        val smallCaves = allCaves.filterIsInstance<Small>()
+
+        val allPossibleVisitLimits =
+            (smallCaves.indices)
+                .map { smallCaveIndex ->
+                    allCaves.associateWith {
+                        when (it) {
+                            is Start -> 1
+                            is End -> 1
+                            is Small -> if (it == smallCaves[smallCaveIndex]) 2 else 1
+                            else -> null
+                        }
+                    }
+                }
+
+        return allPossibleVisitLimits.flatMap { visitLimit ->
+            caveSystem.getPathsFromStartToEnd(visitLimit)
+        }.toSet().size
+    }
 
     data class CaveSystem(val paths: Set<Path>) {
         init {
@@ -55,21 +96,33 @@ class Day12 {
 
         private fun pathsFrom(cave: Cave) = paths.filter { path -> path.from == cave }
 
-        fun getPathsFromStartToEnd(): List<List<Cave>> {
-            return findPathToEnd(Start, listOf())
+        fun getPathsFromStartToEnd(visitLimitPerCave: Map<Cave, Int?>): List<List<Cave>> {
+            return findPathToEnd(Start, listOf(), visitLimitPerCave)
         }
 
-        private fun findPathToEnd(currentCave: Cave, road: List<Cave>): List<List<Cave>> {
+        private fun findPathToEnd(
+            currentCave: Cave,
+            road: List<Cave>,
+            visitLimitPerCave: Map<Cave, Int?>
+        ): List<List<Cave>> {
             if (currentCave == End) {
                 return listOf(road.plus(End))
             }
 
             val cavesToCheckFromCurrentCave = pathsFrom(currentCave)
                 .map { it.to }
-                .filterNot { it is Start || (it is Small && road.contains(it)) }
+                .filter { canVisit(it, road, visitLimitPerCave) }
 
             return cavesToCheckFromCurrentCave
-                .flatMap { findPathToEnd(it, road.plus(currentCave)) }
+                .flatMap { findPathToEnd(it, road.plus(currentCave), visitLimitPerCave) }
+        }
+
+        private fun canVisit(cave: Cave, road: List<Cave>, visitLimitPerCave: Map<Cave, Int?>): Boolean {
+            val visitLimit = visitLimitPerCave[cave] ?: return true
+
+            val visitCount = road.count { it == cave }
+
+            return visitCount < visitLimit
         }
     }
 

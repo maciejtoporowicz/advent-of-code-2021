@@ -1,6 +1,6 @@
 package it.toporowicz.aoc2021
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -46,8 +46,8 @@ internal class Day12Test {
     }
 
     @ParameterizedTest
-    @MethodSource("pathCountingTestData")
-    fun shouldCountPaths(caveSystem: Day12.CaveSystem, expectedNumOfPaths: Int) {
+    @MethodSource("pathCountingWithSingleVisitToSmallCaveTestData")
+    fun shouldCountUniquePathsWhichGoThroughSmallCaveAtMostOnce(caveSystem: Day12.CaveSystem, expectedNumOfPaths: Int) {
         // when
         val actualNumOfPaths = Day12().countUniquePathsWhichGoThroughSmallCaveAtMostOnce(caveSystem)
 
@@ -55,65 +55,82 @@ internal class Day12Test {
         assertEquals(expectedNumOfPaths, actualNumOfPaths)
     }
 
+    @ParameterizedTest
+    @MethodSource("pathCountingWithAtMostTwoVisitsToSpecificSmallCaveTestData")
+    fun shouldCountUniquePathsWhichGoThroughOneSmallCaveAtMostTwice(
+        caveSystem: Day12.CaveSystem,
+        expectedNumOfPaths: Int
+    ) {
+        // when
+        val actualNumOfPaths = Day12().countUniquePathsWhichGoThroughOneSmallCaveAtMostTwice(caveSystem)
+
+        // then
+        assertEquals(expectedNumOfPaths, actualNumOfPaths)
+    }
+
     companion object {
-        @JvmStatic
-        fun pathCountingTestData(): Stream<Arguments> = Stream.of(
-            Arguments.of(
-                Day12InputDataParser().parse(
-                    listOf(
-                        "start-A",
-                        "start-b",
-                        "A-c",
-                        "A-b",
-                        "b-d",
-                        "A-end",
-                        "b-end"
-                    )
-                ),
-                10
-            ),
-            Arguments.of(
-                Day12InputDataParser().parse(
-                    listOf(
-                        "dc-end",
-                        "HN-start",
-                        "start-kj",
-                        "dc-start",
-                        "dc-HN",
-                        "LN-dc",
-                        "HN-end",
-                        "kj-sa",
-                        "kj-HN",
-                        "kj-dc"
-                    ),
-                ),
-                19
-            ),
-            Arguments.of(
-                Day12InputDataParser().parse(
-                    listOf(
-                        "fs-end",
-                        "he-DX",
-                        "fs-he",
-                        "start-DX",
-                        "pj-DX",
-                        "end-zg",
-                        "zg-sl",
-                        "zg-pj",
-                        "pj-he",
-                        "RW-he",
-                        "fs-DX",
-                        "pj-RW",
-                        "zg-RW",
-                        "start-pj",
-                        "he-WI",
-                        "zg-he",
-                        "pj-fs",
-                        "start-RW"
-                    )
-                ),
-                226
+        private val caveSystem_1 = Day12InputDataParser().parse(
+            listOf(
+                "start-A",
+                "start-b",
+                "A-c",
+                "A-b",
+                "b-d",
+                "A-end",
+                "b-end"
             )
+        )
+
+        private val caveSystem_2 = Day12InputDataParser().parse(
+            listOf(
+                "dc-end",
+                "HN-start",
+                "start-kj",
+                "dc-start",
+                "dc-HN",
+                "LN-dc",
+                "HN-end",
+                "kj-sa",
+                "kj-HN",
+                "kj-dc"
+            ),
+        )
+
+        private val caveSystem_3 = Day12InputDataParser().parse(
+            listOf(
+                "fs-end",
+                "he-DX",
+                "fs-he",
+                "start-DX",
+                "pj-DX",
+                "end-zg",
+                "zg-sl",
+                "zg-pj",
+                "pj-he",
+                "RW-he",
+                "fs-DX",
+                "pj-RW",
+                "zg-RW",
+                "start-pj",
+                "he-WI",
+                "zg-he",
+                "pj-fs",
+                "start-RW"
+            )
+        )
+
+        @JvmStatic
+        fun pathCountingWithSingleVisitToSmallCaveTestData(): Stream<Arguments> = Stream.of(
+            Arguments.of(caveSystem_1, 10),
+            Arguments.of(caveSystem_2, 19),
+            Arguments.of(caveSystem_3, 226)
+        )
+
+        @JvmStatic
+        fun pathCountingWithAtMostTwoVisitsToSpecificSmallCaveTestData(): Stream<Arguments> = Stream.of(
+            Arguments.of(caveSystem_1, 36),
+            Arguments.of(caveSystem_2, 103),
+            Arguments.of(caveSystem_3, 3509)
         )
     }
 }
