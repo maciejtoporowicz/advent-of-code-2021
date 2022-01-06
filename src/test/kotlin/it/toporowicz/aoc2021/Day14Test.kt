@@ -9,7 +9,7 @@ internal class Day14Test {
         Day14.Polymer(
             listOf('N', 'N', 'C', 'B')
         ),
-        listOf(
+        mapOf(
             Day14.AdjacentElements('C', 'H') to 'B',
             Day14.AdjacentElements('H', 'H') to 'N',
             Day14.AdjacentElements('C', 'B') to 'H',

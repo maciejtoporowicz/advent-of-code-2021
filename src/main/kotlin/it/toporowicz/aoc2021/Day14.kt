@@ -28,7 +28,7 @@ class Day14InputDataParser {
                             rawAdjacentElements[1]
                         ) to elementToInsert
                     }
-            }
+            }.toMap()
 
         return Day14.InputData(Day14.Polymer(polymerTemplate.toCharArray().toList()), pairInsertionRules)
     }
@@ -52,27 +52,23 @@ class Day14 {
 
     data class AdjacentElements(val first: Char, val second: Char)
 
-    data class InputData(val polymerTemplate: Polymer, val pairInsertionRules: List<Pair<AdjacentElements, Char>>)
+    data class InputData(val polymerTemplate: Polymer, val pairInsertionRules: Map<AdjacentElements, Char>)
 
     data class Polymer(val template: List<Char>) {
         init {
             require(template.size >= 2) { "Template needs to have at least two elements" }
         }
 
-        fun step(pairInsertionRules: List<Pair<AdjacentElements, Char>>): Polymer {
+        fun step(pairInsertionRules: Map<AdjacentElements, Char>): Polymer {
             val untilIndexOfSecondFromEnd = template.size - 2
 
             val allMatchingInsertionIndexForElement =
                 (0..untilIndexOfSecondFromEnd)
                     .mapNotNull { index ->
                         val nextTwoElements = AdjacentElements(template[index], template[index + 1])
-                        val matchingPairInsertionRule = pairInsertionRules.find { it.first == nextTwoElements }
+                        val matchingPairInsertionRule = pairInsertionRules[nextTwoElements]!!
 
-                        if (matchingPairInsertionRule != null) {
-                            (index + 1) to matchingPairInsertionRule.second
-                        } else {
-                            null
-                        }
+                        (index + 1) to matchingPairInsertionRule
                     }
 
             return allMatchingInsertionIndexForElement
