@@ -1,7 +1,5 @@
 package it.toporowicz.aoc2021
 
-import java.math.BigInteger
-
 fun main() {
     val inputData = InputReader.readInputData("it/toporowicz/aoc2021/day14.txt").let {
         Day14InputDataParser().parse(it)
@@ -13,36 +11,93 @@ fun main() {
 
 class Day14InputDataParser {
     fun parse(lines: List<String>): Day14.InputData {
-        val polymerTemplate = lines[0]
+        val startingTemplateAsString = lines[0]
 
-        val pairInsertionRules = lines
+        val untilSecondIndexFromEnd = startingTemplateAsString.length - 2
+
+        val characterBasedPairInsertionRules = lines
             .drop(2)
-            .map { line ->
+            .associate { line ->
                 line.split(" -> ")
                     .let {
-                        val rawAdjacentElements = it[0]
+                        val adjacentElements = it[0]
                         val elementToInsert = it[1].toCharArray().first()
 
                         Day14.AdjacentElements(
-                            rawAdjacentElements[0],
-                            rawAdjacentElements[1]
+                            adjacentElements[0],
+                            adjacentElements[1]
                         ) to elementToInsert
                     }
-            }.toMap()
+            }
 
-        return Day14.InputData(Day14.Polymer(polymerTemplate.toCharArray().toList()), pairInsertionRules)
+        val pairInsertionRules = characterBasedPairInsertionRules.map { (adjacentElements, element) ->
+            val leftResultingElement = Day14.AdjacentElements(adjacentElements.left, element)
+            val rightResultingElement = Day14.AdjacentElements(element, adjacentElements.right)
+
+            adjacentElements to Day14.ResultAdjacentElements(
+                leftResultingElement,
+                rightResultingElement
+            )
+        }.toMap()
+
+        val adjacentElements =
+            (0..untilSecondIndexFromEnd)
+                .fold(listOf<Day14.AdjacentElements>()) { accList, index ->
+                    accList.plus(
+                        Day14.AdjacentElements(
+                            startingTemplateAsString[index],
+                            startingTemplateAsString[index + 1]
+                        )
+                    )
+                }
+
+
+        return Day14.InputData(Day14.Polymer(adjacentElements), pairInsertionRules)
     }
 }
 
 class Day14 {
-    fun differenceBetweenMostAndLeastFrequentElementsAfterPolymerization(numOfSteps: Int, inputData: InputData): BigInteger {
+    fun differenceBetweenMostAndLeastFrequentElementsAfterPolymerization(
+        numOfSteps: Int,
+        inputData: InputData
+    ): Long {
         val (polymer, pairInsertionRules) = inputData
 
-        val polymerAfterPolymerization = (1..numOfSteps).fold(
-            polymer
-        ) { accPolymer, _ -> accPolymer.step(pairInsertionRules) }
+        val lastLetter = polymer.template.last().right
 
-        val elementFrequencies = polymerAfterPolymerization.countElementFrequency().values
+        val result = mutableMapOf<AdjacentElements, Long>()
+            .also { map ->
+                pairInsertionRules.keys.forEach { adjacentElements ->
+                    map[adjacentElements] = 0
+                }
+            }
+
+        polymer.template.forEach {
+            result[it] = result[it]!! + 1
+        }
+
+        repeat(numOfSteps) {
+            val delta = result.keys.associateWith { 0L }.toMutableMap()
+
+            result.keys.forEach { adjacentElements ->
+                val adjacentElementsCount = result[adjacentElements]!!
+
+                if (adjacentElementsCount <= 0L) {
+                    return@forEach
+                }
+
+                val (left, right) = pairInsertionRules[adjacentElements]!!
+                delta[adjacentElements] = delta[adjacentElements]!! - adjacentElementsCount
+                delta[left] = delta[left]!! + adjacentElementsCount
+                delta[right] = delta[right]!! + adjacentElementsCount
+            }
+
+            delta.forEach { (deltaKey, deltaValue) ->
+                result[deltaKey] = result[deltaKey]!! + deltaValue
+            }
+        }
+
+        val elementFrequencies = countElementFrequency(result, lastLetter).values
 
         val min = elementFrequencies.minOf { it }
         val max = elementFrequencies.maxOf { it }
@@ -50,42 +105,30 @@ class Day14 {
         return max - min
     }
 
-    data class AdjacentElements(val first: Char, val second: Char)
+    private fun countElementFrequency(
+        result: Map<AdjacentElements, Long>,
+        lastLetter: Char
+    ): Map<Char, Long> {
+        val accMap = mutableMapOf<Char, Long>()
 
-    data class InputData(val polymerTemplate: Polymer, val pairInsertionRules: Map<AdjacentElements, Char>)
+        result.forEach { (adjacentElements, count) ->
+            val character = adjacentElements.left
 
-    data class Polymer(val template: List<Char>) {
-        init {
-            require(template.size >= 2) { "Template needs to have at least two elements" }
+            accMap.merge(character, count) { oldCount, newCount -> oldCount + newCount }
         }
 
-        fun step(pairInsertionRules: Map<AdjacentElements, Char>): Polymer {
-            val untilIndexOfSecondFromEnd = template.size - 2
+        accMap.merge(lastLetter, 1) { oldCount, newCount -> oldCount + newCount }
 
-            val allMatchingInsertionIndexForElement =
-                (0..untilIndexOfSecondFromEnd)
-                    .mapNotNull { index ->
-                        val nextTwoElements = AdjacentElements(template[index], template[index + 1])
-                        val matchingPairInsertionRule = pairInsertionRules[nextTwoElements]!!
-
-                        (index + 1) to matchingPairInsertionRule
-                    }
-
-            return allMatchingInsertionIndexForElement
-                .reversed()
-                .fold(template.toMutableList()) { accTemplate, insertionIndexForElement ->
-                    val (insertionIndex, element) = insertionIndexForElement
-                    accTemplate.add(insertionIndex, element)
-                    accTemplate
-                }
-                .let { Polymer(it.toList()) }
-        }
-
-        fun countElementFrequency(): Map<Char, BigInteger> = template
-            .toCharArray()
-            .fold<MutableMap<Char, BigInteger>>(mutableMapOf()) { accFrequency, element ->
-                accFrequency.merge(element, BigInteger.ONE) { existingFrequency, elementToMerge -> existingFrequency + elementToMerge }
-                accFrequency
-            }.toMap()
+        return accMap.toMap()
     }
+
+    data class AdjacentElements(val left: Char, val right: Char)
+    data class ResultAdjacentElements(val left: AdjacentElements, val right: AdjacentElements)
+
+    data class InputData(
+        val polymerTemplate: Polymer,
+        val pairInsertionRules: Map<AdjacentElements, ResultAdjacentElements>
+    )
+
+    data class Polymer(val template: List<AdjacentElements>)
 }
